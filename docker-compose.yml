@@ -1,0 +1,49 @@
+version: "3.8"
+services:
+  dbi:
+    image: mysql:5.7
+    container_name: mysql23
+    restart: always
+    environment:
+      - MYSQL_DATABASE=dataviz
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=
+      - MYSQL_ROOT_PASSWORD=
+    expose:
+      - "3306"
+    ports:
+      - "3306:3306"
+    volumes:
+      - './.mysql-data/db:/var/lib/mysql'
+    networks:
+      - projet
+  api:
+    depends_on:
+      - dbi
+    build:
+      dockerfile: Dockerfile.dev
+      context: "./"
+    volumes:
+      - /app/node_modules
+      - ./:/app
+    ports:
+     - "3001:3001"
+    networks:
+      - projet
+  client:
+    stdin_open: true
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    build:
+      dockerfile: Dockerfile.dev
+      context: ./front
+    volumes:
+      - /app/node_modules
+      - ./front:/app
+    ports:
+     - "4000:3000"
+    networks:
+      - projet
+networks:
+  projet:
+    driver: bridge
